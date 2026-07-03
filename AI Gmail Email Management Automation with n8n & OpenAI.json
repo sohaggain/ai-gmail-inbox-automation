@@ -1,0 +1,642 @@
+{
+  "name": "AI Gmail Email Management Automation with n8n & OpenAI",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "custom",
+              "cronExpression": "*/5 * * * *"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "has:attachment"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -560,
+        240
+      ],
+      "id": "8e01b45a-8a91-4629-adb8-f752edef358f",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Zmqep1HZdIQecamA",
+          "name": "For AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=You are an intelligent assistant trained to analyze and sort incoming emails.\nYour tasks are:\n\nCategorize the email using the list below. Choose only the most relevant category.\n\n1. Promotions\nEmails promoting a product or service, including offers, discounts, and marketing blasts.\nExamples:\n- “50% Off Our New Course”\n- “Back to School Sale Ends Soon”\n- “Amazon Deals You Might Like”\nOutput Category: Promotions\n\n2. Socials\nNotifications from social platforms (follows, mentions, updates).\nExamples:«\n- “YouTube: New comment on your video”\n- “Instagram: Someone mentioned you in a story”\n- “Facebook: You have 3 new notifications”\nOutput Category: Socials\n\n3. Personal\nEmails that are personal, time-sensitive, or require your attention or response.\nExamples:\n- “Can we talk today?”\n- “Your friend sent you a message”\n- “Re: Let’s connect about your podcast”\nOutput Category: Personal\n\n4. Sales\nClient-related sales conversations, deals, contract follow-ups, or deal documents.\nExamples:\n- “Proposal for Automation Project”\n- “Signed Contract Attached”\n- “Lead Follow-up: Acme Corp”\nOutput Category: Sales\n\n5. Misc\nAnything that doesn't fall into the other categories.\n"
+            },
+            {
+              "content": "=Sender: {{ $json.from.value[0].name }}\nSubject: {{ $json.subject }}\nEmail body: {{ $json.text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        240
+      ],
+      "id": "68673555-258a-43ba-978b-406df7beb3ea",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "9nVZwWA9LvTbiivl",
+          "name": "OpenAI account 450"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output[0].content[0].text }}",
+                    "rightValue": "Promotions",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "01d14aba-a856-4a55-8d7b-ad26970a9145"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4de9137b-015d-4d6d-bf4b-d2a883f98978",
+                    "leftValue": "={{ $json.output[0].content[0].text }}",
+                    "rightValue": "Social",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4012a0c9-7ed2-4e2a-8839-1254a47e17e9",
+                    "leftValue": "={{ $json.output[0].content[0].text }}",
+                    "rightValue": "Personal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ca8ecae4-fdd5-4592-9929-29a46429e145",
+                    "leftValue": "={{ $json.output[0].content[0].text }}",
+                    "rightValue": "Sales",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "114b2dec-e25e-4d8d-bdef-482f50810652",
+                    "leftValue": "={{ $json.output[0].content[0].text }}",
+                    "rightValue": "Misc",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        0,
+        192
+      ],
+      "id": "220d4009-a33a-4ffc-8ed2-97605e6c260d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_3164039754868785404"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        592
+      ],
+      "id": "ca8614d6-5e4d-49b3-8230-a7133ba9dd12",
+      "name": "MISC",
+      "webhookId": "3d1a41e8-d1ea-46ea-ad58-ab51d3df172e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Zmqep1HZdIQecamA",
+          "name": "For AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "CATEGORY_PROMOTIONS"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        -112
+      ],
+      "id": "dad6c2ef-a555-4334-8cfe-3e22fb150813",
+      "name": "PROMOTIONS",
+      "webhookId": "3d1a41e8-d1ea-46ea-ad58-ab51d3df172e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Zmqep1HZdIQecamA",
+          "name": "For AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "CATEGORY_SOCIAL"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        64
+      ],
+      "id": "28fba284-5c9e-4cac-9680-b47d3cc6f489",
+      "name": "SOCIAL",
+      "webhookId": "3d1a41e8-d1ea-46ea-ad58-ab51d3df172e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Zmqep1HZdIQecamA",
+          "name": "For AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_2750518775353483320"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        224
+      ],
+      "id": "ba316798-fa78-4638-9309-dac98ece5b7f",
+      "name": "PERSONAL",
+      "webhookId": "3d1a41e8-d1ea-46ea-ad58-ab51d3df172e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Zmqep1HZdIQecamA",
+          "name": "For AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_285515578100579599"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        416
+      ],
+      "id": "8124778c-c351-4335-bf3c-2c95b88a0096",
+      "name": "SALES",
+      "webhookId": "3d1a41e8-d1ea-46ea-ad58-ab51d3df172e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Zmqep1HZdIQecamA",
+          "name": "For AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        592
+      ],
+      "id": "4dc47ee2-3ede-4f52-87ef-cfa67e2ea1fc",
+      "name": "Mark a message as read",
+      "webhookId": "492038eb-2028-4d6e-9d40-d34a42f1be2a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Zmqep1HZdIQecamA",
+          "name": "For AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $json.id }}",
+        "labelIds": [
+          "INBOX"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        624,
+        592
+      ],
+      "id": "55050be2-75c6-419d-a214-ae089abb12bc",
+      "name": "Remove label from message",
+      "webhookId": "229bb09e-20f3-4d62-8ede-f6709a6e63b4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Zmqep1HZdIQecamA",
+          "name": "For AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You're an expert at replying to incoming emails. Please create a polished reponse.\n\nRules:\n1. Please don't include custom variables like [Name],\n2. Please sign off on all emails with \"Best,\nSohag\""
+            },
+            {
+              "content": "=Sender: {{ $('Gmail Trigger').item.json.from.value[0].address }}\nSubject: {{ $('Gmail Trigger').item.json.subject }}\nEmail body: {{ $('Gmail Trigger').item.json.text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        416,
+        224
+      ],
+      "id": "0d5425c1-8417-420b-a16c-70212087c667",
+      "name": "Message a model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "9nVZwWA9LvTbiivl",
+          "name": "OpenAI account 450"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=RE:{{ $('Gmail Trigger').item.json.subject }}",
+        "message": "={{ $json.output[0].content[0].text }}",
+        "options": {
+          "threadId": "={{ $('PERSONAL').item.json.threadId }}",
+          "sendTo": "={{ $('Gmail Trigger').item.json.from.value[0].address }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        768,
+        224
+      ],
+      "id": "416afbdc-122d-4b95-b61b-4c2a8603276b",
+      "name": "Create a draft",
+      "webhookId": "0200619f-b91b-4411-8b7b-824dc0e45e3a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Zmqep1HZdIQecamA",
+          "name": "For AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "jccatliff@gmail.com",
+        "subject": "=Forward: {{ $('Gmail Trigger').item.json.subject }}",
+        "emailType": "text",
+        "message": "={{ $('Gmail Trigger').item.json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        416
+      ],
+      "id": "4b0caf71-6841-4a91-8758-f18e827580f4",
+      "name": "Send a message",
+      "webhookId": "a6abe359-3c46-48a4-bfd7-a9ceefc110c0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Zmqep1HZdIQecamA",
+          "name": "For AI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "be94d46f-cff0-41cd-a02e-01c7bad97c83",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        224
+      ],
+      "id": "a90848a7-1aac-4d96-ab66-e1ac343ffa53",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "PROMOTIONS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SOCIAL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PERSONAL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SALES",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MISC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MISC": {
+      "main": [
+        [
+          {
+            "node": "Mark a message as read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SOCIAL": {
+      "main": [
+        [
+          {
+            "node": "Mark a message as read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PROMOTIONS": {
+      "main": [
+        [
+          {
+            "node": "Mark a message as read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark a message as read": {
+      "main": [
+        [
+          {
+            "node": "Remove label from message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PERSONAL": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SALES": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e3c5087f-dacd-47f7-adc8-1d627b02effb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5f00bba974abf03cb5183d4d65f8a9645a781b04770df6a7d08284fca87d50b3"
+  },
+  "nodeGroups": [],
+  "id": "C44FOj9GfLN4fmDb",
+  "tags": []
+}
